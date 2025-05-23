@@ -58,9 +58,7 @@ orm-prisma/
 │   ├── schema.prisma    # Database schema definition
 │   └── migrations/      # Database migrations
 ├── src/
-│   ├── models/         # Data models
-│   ├── controllers/    # Route controllers
-│   └── routes/         # API routes
+│   ├── index.ts       # index file
 ├── .env               # Environment variables
 └── package.json       # Project dependencies
 ```
@@ -70,19 +68,10 @@ orm-prisma/
 - `npm run dev` - Start development server
 - `npm run build` - Build the project
 - `npm start` - Start production server
-- `npx prisma studio` - Open Prisma Studio to view/edit database
 - `npx prisma migrate dev` - Create and apply database migrations
 - `npx prisma generate` - Generate Prisma Client
 
 ## Database Management
-
-### Viewing Database
-
-To view and manage your database through a GUI:
-
-```bash
-npx prisma studio
-```
 
 ### Creating Migrations
 
