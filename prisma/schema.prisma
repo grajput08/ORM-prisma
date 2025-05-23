@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Todo {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model User {
+  asurite        String           @id
+  name           String
+  email          String
+  createdAt      DateTime         @default(now()) @map("created_at")
+  conversations  Conversation[]
+  messages       Message[]
+  recordings     Recording[]
+  assignments    Assignment[]
+  sessionStatus  SessionStatus[]
+  results        Result[]
+
+  @@map("users")
+}
+
+model Conversation {
+  conversationId String           @id @default(uuid()) @map("conversation_id")
+  asurite        String
+  status         String
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  user           User             @relation(fields: [asurite], references: [asurite])
+  messages       Message[]
+  recordings     Recording[]
+  ttsRequests    TTSRequest[]
+  translations   Translation[]
+  assignments    Assignment[]
+  sessionStatus  SessionStatus[]
+
+  @@map("conversations")
+}
+
+model Message {
+  messageId      String         @id @default(uuid()) @map("message_id")
+  conversationId String         @map("conversation_id")
+  asurite        String
+  type           String
+  content        String         @db.Text
+  language       String
+  requestType    String         @map("request_type")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  conversation   Conversation   @relation(fields: [conversationId], references: [conversationId])
+  user           User           @relation(fields: [asurite], references: [asurite])
+  ttsRequests    TTSRequest[]
+  translations   Translation[]
+
+  @@map("messages")
+}
+
+model Recording {
+  recordingId    String       @id @default(uuid()) @map("recording_id")
+  asurite        String
+  conversationId String       @map("conversation_id")
+  url            String       @db.Text
+  createdAt      DateTime     @default(now()) @map("created_at")
+  user           User         @relation(fields: [asurite], references: [asurite])
+  conversation   Conversation @relation(fields: [conversationId], references: [conversationId])
+
+  @@map("recordings")
+}
+
+model TTSRequest {
+  ttsId          String       @id @default(uuid()) @map("tts_id")
+  conversationId String       @map("conversation_id")
+  messageId      String       @map("message_id")
+  text           String       @db.Text
+  language       String
+  audioUrl       String       @map("audio_url")
+  status         String
+  createdAt      DateTime     @default(now()) @map("created_at")
+  conversation   Conversation @relation(fields: [conversationId], references: [conversationId])
+  message        Message      @relation(fields: [messageId], references: [messageId])
+
+  @@map("tts_requests")
+}
+
+model Translation {
+  translationId    String       @id @default(uuid()) @map("translation_id")
+  conversationId   String       @map("conversation_id")
+  messageId        String       @map("message_id")
+  text             String       @db.Text
+  translatedText   String       @map("translated_text")
+  language         String
+  status           String
+  createdAt        DateTime     @default(now()) @map("created_at")
+  conversation     Conversation @relation(fields: [conversationId], references: [conversationId])
+  message          Message      @relation(fields: [messageId], references: [messageId])
+
+  @@map("translations")
+}
+
+model Assignment {
+  assignmentId    String       @id @default(uuid()) @map("assignment_id")
+  asurite         String
+  conversationId  String       @map("conversation_id")
+  status          String
+  createdAt       DateTime     @default(now()) @map("created_at")
+  user            User         @relation(fields: [asurite], references: [asurite])
+  conversation    Conversation @relation(fields: [conversationId], references: [conversationId])
+  results         Result[]
+
+  @@map("assignments")
+}
+
+model SessionStatus {
+  statusId          String       @id @default(uuid()) @map("status_id")
+  conversationId    String       @map("conversation_id")
+  asurite           String
+  oldStatus         String       @map("old_status")
+  newStatus         String       @map("new_status")
+  pairsTotal        Int          @map("pairs_total")
+  pairsRemaining    Int          @map("pairs_remaining")
+  timeTotal         Int          @map("time_total")
+  timeRemaining     Int          @map("time_remaining")
+  createdAt         DateTime     @default(now()) @map("created_at")
+  conversation      Conversation @relation(fields: [conversationId], references: [conversationId])
+  user              User         @relation(fields: [asurite], references: [asurite])
+
+  @@map("session_status")
+}
+
+model Result {
+  id                String      @id @default(uuid())
+  userId            String      @map("user_id")
+  assignmentId      String      @map("assignment_id")
+  scoreGiven        Decimal     @map("score_given")
+  scoreMaximum      Decimal     @map("score_maximum")
+  comment           String      @db.Text
+  activityProgress  String      @map("activity_progress")
+  gradingProgress   String      @map("grading_progress")
+  createdAt         DateTime    @default(now()) @map("created_at")
+  updatedAt         DateTime    @updatedAt @map("updated_at")
+  user              User        @relation(fields: [userId], references: [asurite])
+  assignment        Assignment  @relation(fields: [assignmentId], references: [assignmentId])
+
+  @@map("results")
+}
